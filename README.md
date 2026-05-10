@@ -20,7 +20,7 @@ $ cargo add filelock
 use filelock;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut lock = filelock::new("myfile.lock");
+    let mut lock = filelock::new("myfile.lock", ());
     let _guard = lock.lock()?;
 
     // Perform critical operations
@@ -36,7 +36,7 @@ For manual control:
 use filelock;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut lock = filelock::new("myfile.lock");
+    let mut lock = filelock::new("myfile.lock", ());
     let guard = lock.lock()?;
 
     // Perform critical operations

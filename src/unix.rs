@@ -6,20 +6,24 @@ use std::ffi::CString;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
-pub struct FileLock {
+pub struct FileLock<T: ?Sized> {
     filename: PathBuf,
     fd: libc::c_int,
+    pub(crate) data: Box<T>,
 }
 
-impl FileLock {
-    pub fn new<P: AsRef<Path>>(filename: P) -> FileLock {
+impl<T> FileLock<T> {
+    pub fn new<P: AsRef<Path>>(filename: P, data: T) -> FileLock<T> {
         FileLock {
             filename: filename.as_ref().to_path_buf(),
             fd: 0,
+            data: Box::new(data),
         }
     }
+}
 
-    pub fn lock(&mut self) -> Result<FileLockGuard<'_>, errno::Errno> {
+impl<T: ?Sized> FileLock<T> {
+    pub fn lock(&mut self) -> Result<FileLockGuard<'_, T>, errno::Errno> {
         unsafe {
             let c_filename = CString::new(self.filename.as_os_str().as_bytes()).unwrap();
             let fd = libc::open(c_filename.as_ptr(), libc::O_RDWR | libc::O_CREAT, 0o644);
@@ -54,7 +58,7 @@ impl FileLock {
     }
 }
 
-impl Drop for FileLock {
+impl<T: ?Sized> Drop for FileLock<T> {
     fn drop(&mut self) {
         if self.fd > 0 {
             unsafe {

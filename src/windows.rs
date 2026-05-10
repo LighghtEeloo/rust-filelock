@@ -4,14 +4,15 @@ use crate::FileLockGuard;
 use std::os::windows::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
-pub struct FileLock {
+pub struct FileLock<T: ?Sized> {
     handle: winapi::um::winnt::HANDLE,
     create_error: Option<errno::Errno>,
     filename: PathBuf,
+    pub(crate) data: Box<T>,
 }
 
-impl FileLock {
-    pub fn new<P: AsRef<Path>>(filename: P) -> FileLock {
+impl<T> FileLock<T> {
+    pub fn new<P: AsRef<Path>>(filename: P, data: T) -> FileLock<T> {
         let path = filename.as_ref();
 
         // Convert path to null-terminated UTF-16 wide string
@@ -44,10 +45,13 @@ impl FileLock {
             handle,
             create_error,
             filename: path.to_path_buf(),
+            data: Box::new(data),
         }
     }
+}
 
-    pub fn lock(&mut self) -> Result<FileLockGuard<'_>, errno::Errno> {
+impl<T: ?Sized> FileLock<T> {
+    pub fn lock(&mut self) -> Result<FileLockGuard<'_, T>, errno::Errno> {
         // Check if file handle is valid from new()
         if self.handle == winapi::um::handleapi::INVALID_HANDLE_VALUE {
             return Err(self.create_error.unwrap_or(errno::errno()));
@@ -94,7 +98,7 @@ impl FileLock {
     }
 }
 
-impl Drop for FileLock {
+impl<T: ?Sized> Drop for FileLock<T> {
     fn drop(&mut self) {
         if self.handle != winapi::shared::ntdef::NULL
             && self.handle != winapi::um::handleapi::INVALID_HANDLE_VALUE

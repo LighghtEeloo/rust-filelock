@@ -4,7 +4,7 @@
 //!
 //! ```rust
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let mut lock = filelock::new("myfile.lock");
+//!     let mut lock = filelock::new("myfile.lock", ());
 //!     let _guard = lock.lock()?;
 //!
 //!     // Perform critical operations
@@ -18,7 +18,7 @@
 //!
 //! ```rust
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let mut lock = filelock::new("myfile.lock");
+//!     let mut lock = filelock::new("myfile.lock", ());
 //!     let guard = lock.lock()?;
 //!
 //!     // Perform critical operations
@@ -47,25 +47,25 @@ use std::path::Path;
 
 /// Creates a new FileLock instance.
 ///
-/// This is a convenience function equivalent to `FileLock::new(filename)`.
+/// This is a convenience function equivalent to `FileLock::new(filename, data)`.
 ///
 /// # Examples
 ///
 /// ```rust
 /// use filelock;
 ///
-/// let mut lock = filelock::new("myfile.lock");
+/// let mut lock = filelock::new("myfile.lock", ());
 /// let _guard = lock.lock().unwrap();
 /// ```
-pub fn new<P: AsRef<Path>>(filename: P) -> FileLock {
-    FileLock::new(filename)
+pub fn new<P: AsRef<Path>, T>(filename: P, data: T) -> FileLock<T> {
+    FileLock::new(filename, data)
 }
 
 #[cfg(test)]
 mod tests {
     #[test]
     fn it_works() {
-        let mut lock = super::new("test.lock");
+        let mut lock = super::new("test.lock", ());
         let _guard = lock.lock().unwrap();
     }
 }

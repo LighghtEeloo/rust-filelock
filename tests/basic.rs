@@ -3,7 +3,7 @@ use filelock::FileLock;
 #[test]
 fn test_basic_lock_and_unlock() {
     let filename = "test_basic.lock";
-    let mut lock = FileLock::new(filename);
+    let mut lock = FileLock::new(filename, ());
 
     // Test manual unlock
     let guard = lock.lock().unwrap();
@@ -17,7 +17,7 @@ fn test_basic_lock_and_unlock() {
 #[test]
 fn test_raii_automatic_unlock() {
     let filename = "test_raii.lock";
-    let mut lock = FileLock::new(filename);
+    let mut lock = FileLock::new(filename, ());
 
     {
         let _guard = lock.lock().unwrap();
@@ -31,8 +31,8 @@ fn test_raii_automatic_unlock() {
 #[test]
 fn test_multiple_instances_same_file() {
     let filename = "test_instances.lock";
-    let mut lock1 = FileLock::new(filename);
-    let mut lock2 = FileLock::new(filename);
+    let mut lock1 = FileLock::new(filename, ());
+    let mut lock2 = FileLock::new(filename, ());
 
     // First instance acquires lock
     let guard1 = lock1.lock().unwrap();
@@ -50,7 +50,7 @@ fn test_lock_file_creation_and_cleanup() {
     let _ = std::fs::remove_file(filename);
 
     {
-        let mut lock = FileLock::new(filename);
+        let mut lock = FileLock::new(filename, ());
         let _guard = lock.lock().unwrap();
 
         // Verify the lock file exists while locked

@@ -2,7 +2,7 @@ use filelock::FileLock;
 
 #[test]
 fn test_invalid_path_locking() {
-    let mut lock = FileLock::new("/invalid/path/that/does/not/exist/test.lock");
+    let mut lock = FileLock::new("/invalid/path/that/does/not/exist/test.lock", ());
     let result = lock.lock();
     assert!(result.is_err(), "Locking on invalid path should fail");
 }
@@ -19,7 +19,7 @@ fn test_file_permission_denied() {
     File::create(filename).unwrap();
     std::fs::set_permissions(filename, std::fs::Permissions::from_mode(0o000)).unwrap();
 
-    let mut lock = FileLock::new(filename);
+    let mut lock = FileLock::new(filename, ());
     let result = lock.lock();
     assert!(
         result.is_err(),
@@ -34,7 +34,7 @@ fn test_file_permission_denied() {
 #[test]
 fn test_error_recovery() {
     let filename = "test_error_recovery.lock";
-    let mut lock = FileLock::new(filename);
+    let mut lock = FileLock::new(filename, ());
 
     // First successful lock
     let guard1 = lock.lock().unwrap();

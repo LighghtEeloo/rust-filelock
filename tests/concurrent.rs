@@ -13,7 +13,7 @@ fn test_concurrent_lock_access() {
     let barrier_clone = barrier.clone();
     let log_clone = access_log.clone();
     let handle1 = thread::spawn(move || {
-        let mut lock = FileLock::new(filename);
+        let mut lock = FileLock::new(filename, ());
         barrier_clone.wait(); // Synchronize start
 
         let guard = lock.lock().unwrap();
@@ -27,7 +27,7 @@ fn test_concurrent_lock_access() {
     let barrier_clone = barrier.clone();
     let log_clone = access_log.clone();
     let handle2 = thread::spawn(move || {
-        let mut lock = FileLock::new(filename);
+        let mut lock = FileLock::new(filename, ());
         barrier_clone.wait(); // Synchronize start
 
         thread::sleep(Duration::from_millis(50)); // Let thread1 acquire first
@@ -58,7 +58,7 @@ fn test_exclusive_access_across_threads() {
     for i in 0..4 {
         let counter_clone = concurrent_counter.clone();
         let handle = thread::spawn(move || {
-            let mut lock = FileLock::new(filename);
+            let mut lock = FileLock::new(filename, ());
             let _guard = lock.lock().unwrap();
 
             // Critical section: only one thread should be here at a time
@@ -98,7 +98,7 @@ fn test_lock_timeout_behavior() {
 
     let holder_started_clone = holder_started.clone();
     let holder_handle = thread::spawn(move || {
-        let mut lock = FileLock::new(filename);
+        let mut lock = FileLock::new(filename, ());
         let _guard = lock.lock().unwrap();
         holder_started_clone.wait(); // Signal that lock is held
         thread::sleep(wait_duration); // Hold the lock
@@ -106,7 +106,7 @@ fn test_lock_timeout_behavior() {
 
     let waiter_started_clone = holder_started.clone();
     let waiter_handle = thread::spawn(move || {
-        let mut lock = FileLock::new(filename);
+        let mut lock = FileLock::new(filename, ());
         waiter_started_clone.wait(); // Wait for holder to start
 
         let start_time = Instant::now();
